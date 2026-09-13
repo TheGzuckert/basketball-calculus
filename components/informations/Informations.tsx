@@ -7,18 +7,17 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import type { Quadratic } from "@/app/game/physics";
 import {
-  formatFunction,
-  quadraticRoots,
-  quadraticVertex,
-} from "@/app/game/physics";
+  classificationLabel,
+  classifyVariation,
+  evaluateDerivative,
+  type TrajectoryAnalysis,
+} from "@/src/domain/basketball";
 import { Copy, Spline } from "lucide-react";
 import Image from "next/image";
 
 type InformationsProps = {
-  quadratic: Quadratic | null;
-  formula: string | null;
+  analysis: TrajectoryAnalysis | null;
   tip: string;
 };
 
@@ -44,12 +43,16 @@ async function copyText(text: string) {
   }
 }
 
-export function Informations({ quadratic, formula, tip }: InformationsProps) {
+export function Informations({ analysis, tip }: InformationsProps) {
   const [copied, setCopied] = useState(false);
-  const displayFormula =
-    formula ?? (quadratic ? formatFunction(quadratic) : "f(x) = —");
-  const vertex = quadratic ? quadraticVertex(quadratic) : null;
-  const roots = quadratic ? quadraticRoots(quadratic) : null;
+  const displayFormula = analysis?.formula ?? "f(x) = —";
+  const vertex = analysis?.vertex ?? null;
+  const roots = analysis?.roots ?? null;
+  const fPrimeAtStart = analysis
+    ? evaluateDerivative(analysis.derivative, analysis.origin.x)
+    : null;
+  const variation =
+    fPrimeAtStart == null ? null : classifyVariation(fPrimeAtStart);
 
   async function handleCopy() {
     const ok = await copyText(displayFormula);
@@ -102,50 +105,93 @@ export function Informations({ quadratic, formula, tip }: InformationsProps) {
 
       <div className="rounded-xl bg-white p-4 ring-1 ring-zinc-200/80">
         <div className="mb-3 flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-orange-500" />
+          <span className="size-2 rounded-full bg-blue-500" />
           <h2 className="text-sm font-medium text-zinc-900">
-            Vértice
+            Análise da derivada
           </h2>
         </div>
 
-        <p className="text-xs text-zinc-500 mb-2">Ponto máximo da trajetória</p>
-        <p className="font-mono text-sm font-semibold text-zinc-800">
-          {vertex
-            ? `(${formatCoord(vertex.x)}, ${formatCoord(vertex.y)})`
-            : "—"}
+        <p className="mb-2 text-xs text-zinc-500">
+          f'(x) é a inclinação instantânea da trajetória.
+        </p>
+        <p className="font-mono text-xs font-semibold break-all text-zinc-800">
+          {analysis?.derivativeFormula ?? "f'(x) = —"}
+        </p>
+        <p className="mt-2 font-mono text-xs text-zinc-600">
+          Ponto crítico: x = -b / 2a
+          {vertex ? ` = ${formatCoord(vertex.x)}` : ""}
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-zinc-600">
+          {variation === "subindo"
+            ? "f'(x) > 0 no início: a bola está subindo."
+            : variation === "descendo"
+              ? "f'(x) < 0 no início: a bola está descendo."
+              : analysis
+                ? "f'(x) = 0: a bola está no ponto de altura máxima."
+                : "f'(x) > 0 sobe · f'(x) = 0 máximo · f'(x) < 0 desce"}
         </p>
       </div>
 
       <div className="rounded-xl bg-white p-4 ring-1 ring-zinc-200/80">
         <div className="mb-3 flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-blue-500" />
+          <span className="size-2 rounded-full bg-orange-500" />
           <h2 className="text-sm font-medium text-zinc-900">
-            Raízes
+            Ponto máximo
           </h2>
         </div>
 
-        <p className="text-xs text-zinc-500 mb-2">Interseções com o solo</p>
+        <p className="text-xs text-zinc-500 mb-2">Vértice e classificação</p>
         <p className="font-mono text-sm font-semibold text-zinc-800">
-          {roots
-            ? `x₁=${formatCoord(roots.x1)}, x₂=${formatCoord(roots.x2)}`
+          {vertex
+            ? `(${formatCoord(vertex.x)}, ${formatCoord(vertex.y)})`
             : "—"}
         </p>
+        <p className="mt-2 text-xs text-zinc-600">
+          Altura máxima:{" "}
+          <span className="font-mono font-semibold text-zinc-800">
+            {vertex ? formatCoord(vertex.y) : "—"}
+          </span>
+        </p>
+        <p className="mt-2 text-xs text-zinc-600">
+          Classificação:{" "}
+          <span className="font-semibold text-zinc-800">
+            {analysis ? classificationLabel(analysis.classification) : "—"}
+          </span>
+        </p>
+        {analysis ? (
+          <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+            {analysis.classificationReason}
+          </p>
+        ) : null}
+        {roots ? (
+          <p className="mt-2 font-mono text-xs text-zinc-500">
+            Raízes: x₁={formatCoord(roots.x1)}, x₂={formatCoord(roots.x2)}
+          </p>
+        ) : null}
       </div>
 
       <div className="rounded-xl bg-white p-4 ring-1 ring-zinc-200/80">
         <div className="mb-3 flex items-center gap-2">
           <Image
             src="/assets/info.png"
-            alt="Dica"
+            alt="Resultado"
             width={16}
             height={16}
             className="size-4"
           />
           <h2 className="text-sm font-medium text-zinc-900">
-            Dica
+            Análise do arremesso
           </h2>
         </div>
-        <p className="text-xs leading-relaxed text-zinc-600">{tip}</p>
+        <p className="text-xs font-semibold text-zinc-800">
+          Resultado:{" "}
+          {analysis
+            ? analysis.hoop.hit
+              ? "Cesta"
+              : "Erro"
+            : "—"}
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-zinc-600">{tip}</p>
       </div>
     </div>
   );

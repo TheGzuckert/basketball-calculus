@@ -51,12 +51,18 @@ export default function AprenderPage() {
         </ul>
         <p>
           Os valores escolhidos para <strong className="text-foreground">ângulo</strong>{" "}
-          e <strong className="text-foreground">força</strong> do lançamento
-          influenciam a trajetória gerada.
+          (θ) e <strong className="text-foreground">força</strong> (F)
+          determinam a velocidade inicial:
         </p>
+        <Formula>vx = v · cos(θ)</Formula>
+        <Formula>vy = v · sin(θ)</Formula>
+        <p>Eliminando o tempo, esses valores viram os coeficientes:</p>
+        <Formula>a = -g / (2 vx²)</Formula>
+        <Formula>b = vy/vx - 2a x₀</Formula>
+        <Formula>c = y₀ - a x₀² - b x₀</Formula>
         <p>
-          Ao alterar esses valores, a parábola também muda. Consequentemente, a
-          bola pode passar acima, abaixo ou diretamente pela cesta.
+          Ao alterar ângulo e força, a parábola muda. Consequentemente, a bola
+          pode passar acima, abaixo ou diretamente pela cesta.
         </p>
       </Hero>
 
@@ -99,10 +105,14 @@ export default function AprenderPage() {
           <strong className="text-foreground">ponto crítico da trajetória</strong>.
         </p>
         <p>Para encontrar esse ponto, igualamos a derivada a zero:</p>
-        <Formula>f'(x) = 0</Formula>
+        <Formula>f'(x) = 0 → x = -b / (2a)</Formula>
+        <p>A segunda derivada classifica o ponto crítico:</p>
+        <Formula>f''(x) = 2a</Formula>
         <p>
-          No caso de uma função quadrática, esse ponto representa a altura
-          máxima da trajetória quando a parábola possui concavidade para baixo.
+          Se <span className="font-mono text-foreground">a &lt; 0</span>, então{" "}
+          <span className="font-mono text-foreground">f''(x) &lt; 0</span> e o
+          ponto é um <strong className="text-foreground">máximo</strong> — a
+          altura máxima da bola.
         </p>
       </Hero>
 
@@ -121,8 +131,10 @@ export default function AprenderPage() {
           atualiza automaticamente sua função matemática.
         </p>
         <p>
-          Depois disso, a derivada é utilizada para analisar essa função e
-          encontrar o ponto de altura máxima da trajetória.
+          Função, derivada, vértice e verificação da cesta saem dos{" "}
+          <strong className="text-foreground">mesmos coeficientes</strong>{" "}
+          a, b e c. A cesta é conferida com{" "}
+          <span className="font-mono text-foreground">f(xCesta)</span>.
         </p>
         <p>
           O objetivo é encontrar uma combinação adequada de{" "}

@@ -6,7 +6,8 @@ import { GameHeader } from "@/components/game-header";
 import { Informations } from "@/components/informations";
 import { BALL_RADIUS, HEIGHT, TIME_SCALE, WIDTH, ballOrigin, drawScene, hoopCenter, loadBackgroundImage, loadBallImage, loadPlayerImage } from "./draw";
 import { GameActions } from "./GameActions";
-import { evaluateShot, GRAVITY, HIT_RADIUS, prepareShot, type PreparedShot } from "./mock";
+import { gerarTrajetoria, type TrajectoryAnalysis } from "@/src/domain/basketball";
+import { evaluateShot, GRAVITY } from "./mock";
 import { positionAtTime, type Point } from "./physics";
 import { ShotControls } from "./ShotControls";
 
@@ -31,7 +32,7 @@ export function Game() {
   const [attempts, setAttempts] = useState(0);
   const [hits, setHits] = useState(0);
   const [message, setMessage] = useState(DEFAULT_TIP);
-  const [shotInfo, setShotInfo] = useState<PreparedShot | null>(null);
+  const [shotInfo, setShotInfo] = useState<TrajectoryAnalysis | null>(null);
   const [lastShot, setLastShot] = useState<LastShot | null>(null);
   const [freeMode, setFreeMode] = useState(false);
 
@@ -70,11 +71,11 @@ export function Game() {
     };
   }, []);
 
-  function finishShot(hit: boolean, yAtHoop: number | null, hoopY: number, endX: number, hoopX: number) {
+  function finishShot(analysis: TrajectoryAnalysis) {
     cancelAnimationFrame(rafRef.current);
     setIsFlying(false);
 
-    const result = evaluateShot({ hit, yAtHoop, hoopY, endX, hoopX });
+    const result = evaluateShot(analysis.hoop);
 
     if (freeMode) {
       if (result.scoreDelta) {
@@ -85,7 +86,7 @@ export function Game() {
     }
 
     setAttempts((current) => Math.min(current + 1, MAX_ATTEMPTS));
-    if (hit) {
+    if (analysis.hoop.hit) {
       setHits((current) => current + 1);
     }
 
@@ -112,22 +113,33 @@ export function Game() {
       setLastShot({ angle, force });
     }
 
-    const shot = prepareShot(origin, angle, force);
-    const shotOrigin = { ...origin };
     const hoop = hoopCenter();
+    const generated = gerarTrajetoria({
+      angulo: angle,
+      forca: force,
+      origin,
+      hoop,
+    });
+
+    if (!generated.ok) {
+      setMessage(generated.message);
+      setShotInfo(null);
+      return;
+    }
+
+    const analysis = generated.analysis;
+    const shotOrigin = { ...origin };
 
     ballRef.current = { ...shotOrigin };
     trailRef.current = [{ ...shotOrigin }];
     setIsFlying(true);
     setMessage("A bola está no ar...");
-    setShotInfo(shot);
+    setShotInfo(analysis);
     paint();
 
     const canvas = canvasRef.current;
     let t = 0;
     let last = 0;
-    let crossedHoop = false;
-    let yAtHoop: number | null = null;
 
     const tick = (now: number) => {
       const drawCtx = canvas?.getContext("2d") ?? canvasRef.current?.getContext("2d");
@@ -138,25 +150,18 @@ export function Game() {
       last = now;
       t += dt;
 
-      const pos = positionAtTime(shotOrigin, shot.velocity, GRAVITY, t);
+      const pos = positionAtTime(shotOrigin, analysis.velocity, GRAVITY, t);
       ballRef.current = pos;
       trailRef.current.push(pos);
 
-      const dist = Math.hypot(pos.x - hoop.x, pos.y - hoop.y);
-
-      if (!crossedHoop && pos.x >= hoop.x) {
-        crossedHoop = true;
-        yAtHoop = pos.y;
-      }
-
-      const hit = dist <= HIT_RADIUS;
+      const reachedHoopX = pos.x >= hoop.x;
       const onGround = pos.y <= BALL_RADIUS;
       const offScreen = pos.x > WIDTH + 40 || pos.y > HEIGHT;
 
       drawScene(drawCtx, pos, trailRef.current);
 
-      if (hit || onGround || offScreen) {
-        finishShot(hit, yAtHoop, hoop.y, pos.x, hoop.x);
+      if ((analysis.hoop.hit && reachedHoopX) || onGround || offScreen) {
+        finishShot(analysis);
         return;
       }
 
@@ -226,11 +231,7 @@ export function Game() {
         }
       />
 
-      <Informations
-        quadratic={shotInfo?.quadratic ?? null}
-        formula={shotInfo?.formula ?? null}
-        tip={tip}
-      />
+      <Informations analysis={shotInfo} tip={tip} />
     </main>
   );
 }

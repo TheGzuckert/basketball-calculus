@@ -30,12 +30,12 @@ export function ShotControls({
           value={angle}
           min={ANGLE_MIN}
           max={ANGLE_MAX}
-          displayMin={0}
-          displayMax={90}
+          displayMin={ANGLE_MIN}
+          displayMax={ANGLE_MAX}
           disabled={disabled}
           formatValue={(v) => `${v}°`}
-          formatMin={() => "0°"}
-          formatMax={() => "90°"}
+          formatMin={() => `${ANGLE_MIN}°`}
+          formatMax={() => `${ANGLE_MAX}°`}
           onChange={onAngleChange}
         />
         <ProgressButton
@@ -44,12 +44,12 @@ export function ShotControls({
           value={force}
           min={FORCE_MIN}
           max={FORCE_MAX}
-          displayMin={0}
-          displayMax={100}
+          displayMin={FORCE_MIN}
+          displayMax={FORCE_MAX}
           disabled={disabled}
           formatValue={(v) => `${v}%`}
-          formatMin={() => "0%"}
-          formatMax={() => "100%"}
+          formatMin={() => `${FORCE_MIN}%`}
+          formatMax={() => `${FORCE_MAX}%`}
           onChange={onForceChange}
         />
         {actions}
