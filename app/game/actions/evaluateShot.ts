@@ -1,21 +1,4 @@
-import {
-  ANGLE_MAX,
-  ANGLE_MIN,
-  FORCE_MAX,
-  FORCE_MIN,
-  GRAVITY,
-  HIT_RADIUS,
-  type HoopCheck,
-} from "@/domain/basketball";
-
-export {
-  ANGLE_MAX,
-  ANGLE_MIN,
-  FORCE_MAX,
-  FORCE_MIN,
-  GRAVITY,
-  HIT_RADIUS,
-};
+import { type HoopCheck } from "@/domain/basketball";
 
 export type ShotEvaluation = {
   message: string;

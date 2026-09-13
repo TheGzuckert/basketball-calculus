@@ -1,4 +1,4 @@
-import type { Point } from "./physics";
+import type { Point } from "../physics";
 import { loadBallImage, getBallImage } from "@/components/ball";
 
 export const WIDTH = 800;

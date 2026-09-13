@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { ChallengeComplete } from "@/components/challenge-complete";
 import { GameHeader } from "@/components/game-header";
 import { Informations } from "@/components/informations";
-import { BALL_RADIUS, HEIGHT, TIME_SCALE, WIDTH, ballOrigin, drawScene, hoopCenter, loadBackgroundImage, loadBallImage, loadPlayerImage } from "./draw";
+import { BALL_RADIUS, HEIGHT, TIME_SCALE, WIDTH, ballOrigin, drawScene, hoopCenter, loadBackgroundImage, loadBallImage, loadPlayerImage } from "../draw";
 import { GameActions } from "./GameActions";
-import { gerarTrajetoria, type TrajectoryAnalysis } from "@/domain/basketball";
-import { evaluateShot, GRAVITY } from "./mock";
-import { positionAtTime, type Point } from "./physics";
+import { gerarTrajetoria, GRAVITY, type TrajectoryAnalysis } from "@/domain/basketball";
+import { evaluateShot } from "./evaluateShot";
+import { positionAtTime, type Point } from "../physics";
 import { ShotControls } from "./ShotControls";
 
 const DEFAULT_TIP = "Ajuste o ângulo e a força para a bola passar pela cesta. A trajetória segue uma função quadrática.";

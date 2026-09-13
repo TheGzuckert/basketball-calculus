@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { ProgressButton } from "@/components/progress-button";
 import { Triangle, Zap } from "lucide-react";
-import { ANGLE_MAX, ANGLE_MIN, FORCE_MAX, FORCE_MIN } from "./mock";
+import { ANGLE_MAX, ANGLE_MIN, FORCE_MAX, FORCE_MIN } from "@/domain/basketball";
 
 type ShotControlsProps = {
   angle: number;
