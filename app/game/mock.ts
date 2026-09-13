@@ -6,7 +6,7 @@ import {
   GRAVITY,
   HIT_RADIUS,
   type HoopCheck,
-} from "@/src/domain/basketball";
+} from "@/domain/basketball";
 
 export {
   ANGLE_MAX,

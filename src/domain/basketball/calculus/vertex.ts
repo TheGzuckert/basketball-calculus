@@ -1,4 +1,4 @@
-import type { CriticalClassification, Point, Quadratic } from "./types";
+import type { CriticalClassification, Point, Quadratic } from "../types";
 
 export function calcularVertice(q: Quadratic): Point {
   if (Math.abs(q.a) < 1e-9) {

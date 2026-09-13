@@ -1,4 +1,4 @@
-import type { Linear, Quadratic, VariationRate } from "./types";
+import type { Linear, Quadratic, VariationRate } from "../types";
 
 export function calcularDerivadaQuadratica(q: Quadratic): Linear {
   return {
@@ -9,11 +9,6 @@ export function calcularDerivadaQuadratica(q: Quadratic): Linear {
 
 export function evaluateDerivative(d: Linear, x: number): number {
   return d.slope * x + d.intercept;
-}
-
-export function formatDerivative(d: Linear): string {
-  const slope = Number(d.slope.toFixed(6));
-  return `f'(x) = ${slope}x ${formatSigned(d.intercept, 4)}`;
 }
 
 export function classifyVariation(fPrime: number): VariationRate {
@@ -34,9 +29,4 @@ export function variationLabel(rate: VariationRate): string {
   }
 
   return "Altura máxima";
-}
-
-function formatSigned(value: number, digits: number): string {
-  const abs = Number(Math.abs(value).toFixed(digits));
-  return value >= 0 ? `+ ${abs}` : `- ${abs}`;
 }

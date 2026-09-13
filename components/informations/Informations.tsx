@@ -12,7 +12,7 @@ import {
   classifyVariation,
   evaluateDerivative,
   type TrajectoryAnalysis,
-} from "@/src/domain/basketball";
+} from "@/domain/basketball";
 import { Copy, Spline } from "lucide-react";
 import Image from "next/image";
 

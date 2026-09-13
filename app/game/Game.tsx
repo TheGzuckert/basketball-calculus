@@ -6,7 +6,7 @@ import { GameHeader } from "@/components/game-header";
 import { Informations } from "@/components/informations";
 import { BALL_RADIUS, HEIGHT, TIME_SCALE, WIDTH, ballOrigin, drawScene, hoopCenter, loadBackgroundImage, loadBallImage, loadPlayerImage } from "./draw";
 import { GameActions } from "./GameActions";
-import { gerarTrajetoria, type TrajectoryAnalysis } from "@/src/domain/basketball";
+import { gerarTrajetoria, type TrajectoryAnalysis } from "@/domain/basketball";
 import { evaluateShot, GRAVITY } from "./mock";
 import { positionAtTime, type Point } from "./physics";
 import { ShotControls } from "./ShotControls";

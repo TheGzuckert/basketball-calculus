@@ -2,7 +2,7 @@ import {
   velocityFromShot,
   type Point,
   type Velocity,
-} from "@/src/domain/basketball";
+} from "@/domain/basketball";
 
 export type { Point, Velocity };
 export { velocityFromShot };

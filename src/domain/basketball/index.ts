@@ -2,32 +2,32 @@ export {
   calcularDerivadaQuadratica,
   classifyVariation,
   evaluateDerivative,
-  formatDerivative,
   variationLabel,
-} from "./derivative";
+} from "./calculus/derivative";
+export { quadraticRoots } from "./calculus/roots";
+export {
+  calcularVertice,
+  classificationLabel,
+  classificationReason,
+  classificarPontoCritico,
+  segundaDerivada,
+} from "./calculus/vertex";
+export { formatDerivative, formatFunction, formatSigned } from "./formatting/formula";
+export { checkHoop, HIT_RADIUS } from "./gameplay/hoop";
 export {
   ANGLE_MAX,
   ANGLE_MIN,
-  ANGLE_VALID_MAX,
-  ANGLE_VALID_MIN,
   FORCE_MAX,
   FORCE_MIN,
-  FORCE_VALID_MAX,
-  FORCE_VALID_MIN,
-  GRAVITY,
-  HIT_RADIUS,
+  gerarTrajetoria,
+} from "./gameplay/shot";
+export { evaluateQuadratic, GRAVITY, parabolaCoefficients } from "./physics/trajectory";
+export {
   MAX_SPEED,
   MIN_SPEED,
-  checkHoop,
-  evaluateQuadratic,
-  formatFunction,
-  gerarTrajetoria,
-  parabolaCoefficients,
-  quadraticRoots,
   speedFromForce,
-  validateShotInputs,
   velocityFromShot,
-} from "./trajectory";
+} from "./physics/velocity";
 export type {
   CriticalClassification,
   GerarTrajetoriaInput,
@@ -41,9 +41,9 @@ export type {
   Velocity,
 } from "./types";
 export {
-  calcularVertice,
-  classificationLabel,
-  classificationReason,
-  classificarPontoCritico,
-  segundaDerivada,
-} from "./vertex";
+  ANGLE_VALID_MAX,
+  ANGLE_VALID_MIN,
+  FORCE_VALID_MAX,
+  FORCE_VALID_MIN,
+  validateShotInputs,
+} from "./validation/shot-validation";
