@@ -16,7 +16,6 @@ export const PLAYER = {
   bodyW: 28,
   bodyH: 70,
   head: 22,
-  // ponta da mão levantada no PNG (lado direito)
   handX: 0.716,
   handY: 0.197,
 };
@@ -94,10 +93,7 @@ export function loadPlayerImage(): Promise<HTMLImageElement | null> {
   return playerPromise;
 }
 
-function drawCoverBackground(
-  ctx: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-) {
+function drawCoverBackground( ctx: CanvasRenderingContext2D, image: HTMLImageElement ) {
   const scale = Math.max(WIDTH / image.width, HEIGHT / image.height);
   const drawWidth = image.width * scale;
   const drawHeight = image.height * scale;
@@ -116,19 +112,9 @@ function drawPlayer(ctx: CanvasRenderingContext2D) {
   }
 
   ctx.fillStyle = "#1d4ed8";
-  ctx.fillRect(
-    PLAYER.x,
-    playerBottom - PLAYER.bodyH,
-    PLAYER.bodyW,
-    PLAYER.bodyH,
-  );
+  ctx.fillRect( PLAYER.x, playerBottom - PLAYER.bodyH, PLAYER.bodyW, PLAYER.bodyH );
   ctx.fillStyle = "#f1c27d";
-  ctx.fillRect(
-    PLAYER.x + (PLAYER.bodyW - PLAYER.head) / 2,
-    playerBottom - PLAYER.bodyH - PLAYER.head,
-    PLAYER.head,
-    PLAYER.head,
-  );
+  ctx.fillRect( PLAYER.x + (PLAYER.bodyW - PLAYER.head) / 2, playerBottom - PLAYER.bodyH - PLAYER.head, PLAYER.head, PLAYER.head );
 }
 
 function drawTrail(ctx: CanvasRenderingContext2D, trail: Point[]) {
