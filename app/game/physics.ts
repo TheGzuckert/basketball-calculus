@@ -22,12 +22,7 @@ export function velocityFromShot(speed: number, angleDeg: number): Velocity {
   };
 }
 
-export function positionAtTime(
-  origin: Point,
-  velocity: Velocity,
-  gravity: number,
-  t: number,
-): Point {
+export function positionAtTime(origin: Point, velocity: Velocity, gravity: number, t: number): Point {
   return {
     x: origin.x + velocity.vx * t,
     y: origin.y + velocity.vy * t - (gravity * t * t) / 2,
@@ -49,6 +44,39 @@ export function parabolaCoefficients(
   const c = origin.y - a * origin.x * origin.x - b * origin.x;
 
   return { a, b, c };
+}
+
+export function evaluateQuadratic(q: Quadratic, x: number): number {
+  return q.a * x * x + q.b * x + q.c;
+}
+
+export function quadraticVertex(q: Quadratic): Point | null {
+  if (Math.abs(q.a) < 1e-9) {
+    return null;
+  }
+
+  const x = -q.b / (2 * q.a);
+  return { x, y: evaluateQuadratic(q, x) };
+}
+
+export function quadraticRoots(q: Quadratic): { x1: number; x2: number } | null {
+  if (Math.abs(q.a) < 1e-9) {
+    return null;
+  }
+
+  const discriminant = q.b * q.b - 4 * q.a * q.c;
+  if (discriminant < 0) {
+    return null;
+  }
+
+  const sqrt = Math.sqrt(discriminant);
+  const x1 = (-q.b - sqrt) / (2 * q.a);
+  const x2 = (-q.b + sqrt) / (2 * q.a);
+
+  return {
+    x1: Math.min(x1, x2),
+    x2: Math.max(x1, x2),
+  };
 }
 
 export function formatFunction(q: Quadratic | null): string {

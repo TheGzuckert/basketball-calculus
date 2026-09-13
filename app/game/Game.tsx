@@ -1,30 +1,39 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  BALL_RADIUS,
-  HEIGHT,
-  TIME_SCALE,
-  WIDTH,
-  ballOrigin,
-  drawScene,
-  hoopCenter,
-} from "./draw";
+import { ChallengeComplete } from "@/components/challenge-complete";
+import { GameHeader } from "@/components/game-header";
+import { Informations } from "@/components/informations";
+import { BALL_RADIUS, HEIGHT, TIME_SCALE, WIDTH, ballOrigin, drawScene, hoopCenter, loadBackgroundImage, loadBallImage, loadPlayerImage } from "./draw";
 import { GameActions } from "./GameActions";
-import { evaluateShot, GRAVITY, HIT_RADIUS, prepareShot } from "./mock";
+import { evaluateShot, GRAVITY, HIT_RADIUS, prepareShot, type PreparedShot } from "./mock";
 import { positionAtTime, type Point } from "./physics";
 import { ShotControls } from "./ShotControls";
+
+const DEFAULT_TIP = "Ajuste o ângulo e a força para a bola passar pela cesta. A trajetória segue uma função quadrática.";
+const REPEAT_TIP = "Mude o ângulo ou a força para avançar. Não vale repetir a jogada anterior.";
+const FREE_MODE_TIP = "Modo livre: arremesse como quiser.";
+const MAX_ATTEMPTS = 5;
+const SCORE_GOAL = 300;
+
+type LastShot = {
+  angle: number;
+  force: number;
+};
 
 export function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const origin = ballOrigin();
-
   const [angle, setAngle] = useState(40);
   const [force, setForce] = useState(42);
   const [flying, setFlying] = useState(false);
   const [score, setScore] = useState(0);
-  const [message, setMessage] = useState("Escolha o ângulo e a força.");
-  const [formula, setFormula] = useState<string | null>(null);
+  const [attempts, setAttempts] = useState(0);
+  const [hits, setHits] = useState(0);
+  const [message, setMessage] = useState(DEFAULT_TIP);
+  const [shotInfo, setShotInfo] = useState<PreparedShot | null>(null);
+  const [lastShot, setLastShot] = useState<LastShot | null>(null);
+  const [freeMode, setFreeMode] = useState(false);
 
   const ballRef = useRef<Point>({ ...origin });
   const trailRef = useRef<Point[]>([]);
@@ -36,35 +45,72 @@ export function Game() {
     setFlying(next);
   }
 
-  useEffect(() => {
+  function paint() {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas?.getContext("2d");
     if (!ctx) return;
     drawScene(ctx, ballRef.current, trailRef.current);
+  }
 
-    return () => cancelAnimationFrame(rafRef.current);
+  useEffect(() => {
+    paint();
+    let cancelled = false;
+
+    Promise.all([
+      loadBackgroundImage(),
+      loadBallImage(),
+      loadPlayerImage(),
+    ]).then(() => {
+      if (!cancelled) paint();
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
-  function finishShot(
-    hit: boolean,
-    yAtHoop: number | null,
-    hoopY: number,
-    endX: number,
-    hoopX: number,
-  ) {
+  function finishShot(hit: boolean, yAtHoop: number | null, hoopY: number, endX: number, hoopX: number) {
     cancelAnimationFrame(rafRef.current);
     setIsFlying(false);
 
     const result = evaluateShot({ hit, yAtHoop, hoopY, endX, hoopX });
-    setMessage(result.message);
+
+    if (freeMode) {
+      if (result.scoreDelta) {
+        setScore((s) => s + result.scoreDelta);
+      }
+      setMessage(result.message);
+      return;
+    }
+
+    setAttempts((current) => Math.min(current + 1, MAX_ATTEMPTS));
+    if (hit) {
+      setHits((current) => current + 1);
+    }
+
     if (result.scoreDelta) {
       setScore((s) => s + result.scoreDelta);
     }
+
+    setMessage(result.message);
   }
 
+  const isRepeatShot =
+    !freeMode &&
+    lastShot !== null &&
+    lastShot.angle === angle &&
+    lastShot.force === force;
+  const challengeWon = !freeMode && score >= SCORE_GOAL;
+  const challengeFailed = !freeMode && attempts >= MAX_ATTEMPTS && score < SCORE_GOAL;
+  const canShoot = !challengeWon && !challengeFailed && !isRepeatShot;
+  const tip = isRepeatShot ? REPEAT_TIP : message;
+
   function shoot() {
-    if (flyingRef.current) return;
+    if (flyingRef.current || !canShoot) return;
+    if (!freeMode) {
+      setLastShot({ angle, force });
+    }
 
     const shot = prepareShot(origin, angle, force);
     const shotOrigin = { ...origin };
@@ -74,21 +120,17 @@ export function Game() {
     trailRef.current = [{ ...shotOrigin }];
     setIsFlying(true);
     setMessage("A bola está no ar...");
-    setFormula(shot.formula);
+    setShotInfo(shot);
+    paint();
 
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (ctx) {
-      drawScene(ctx, ballRef.current, trailRef.current);
-    }
-
     let t = 0;
     let last = 0;
     let crossedHoop = false;
     let yAtHoop: number | null = null;
 
     const tick = (now: number) => {
-      const drawCtx = canvasRef.current?.getContext("2d");
+      const drawCtx = canvas?.getContext("2d") ?? canvasRef.current?.getContext("2d");
       if (!drawCtx) return;
 
       if (!last) last = now;
@@ -128,34 +170,44 @@ export function Game() {
     if (flyingRef.current) return;
     ballRef.current = { ...origin };
     trailRef.current = [];
-    setMessage("Escolha o ângulo e a força.");
-    setFormula(null);
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (ctx) {
-      drawScene(ctx, ballRef.current, trailRef.current);
-    }
+    setMessage(DEFAULT_TIP);
+    setShotInfo(null);
+    paint();
+  }
+
+  function restartGame() {
+    cancelAnimationFrame(rafRef.current);
+    setIsFlying(false);
+    setAttempts(0);
+    setHits(0);
+    setScore(0);
+    setLastShot(null);
+    setFreeMode(false);
+    resetBall();
+  }
+
+  function enterFreeMode() {
+    setFreeMode(true);
+    setLastShot(null);
+    setMessage(FREE_MODE_TIP);
   }
 
   return (
-    <main className="flex w-full max-w-4xl flex-col gap-4">
-      <header className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            Basketball Calculus
-          </h1>
-          <p className="text-sm text-zinc-600">
-            Acerte a cesta. A trajetória é uma parábola.
-          </p>
-        </div>
-        <p className="text-lg font-medium text-zinc-900">Pontuação: {score}</p>
-      </header>
+    <main className="flex w-full max-w-6xl flex-col gap-3">
+      <GameHeader score={score} />
+
+      <ChallengeComplete
+        open={challengeWon || challengeFailed}
+        variant={challengeWon ? "win" : "retry"}
+        onFreeMode={enterFreeMode}
+        onRestart={restartGame}
+      />
 
       <canvas
         ref={canvasRef}
         width={WIDTH}
         height={HEIGHT}
-        className="w-full rounded border border-zinc-300 bg-sky-200"
+        className="h-auto w-full max-h-[48vh] rounded-2xl bg-sky-100 object-contain"
       />
 
       <ShotControls
@@ -164,14 +216,21 @@ export function Game() {
         disabled={flying}
         onAngleChange={setAngle}
         onForceChange={setForce}
+        actions={
+          <GameActions
+            flying={flying}
+            canShoot={canShoot}
+            onShoot={shoot}
+            onReset={resetBall}
+          />
+        }
       />
 
-      <GameActions flying={flying} onShoot={shoot} onReset={resetBall} />
-
-      <p className="text-base font-medium text-zinc-900">{message}</p>
-      {formula ? (
-        <p className="font-mono text-sm text-zinc-700">{formula}</p>
-      ) : null}
+      <Informations
+        quadratic={shotInfo?.quadratic ?? null}
+        formula={shotInfo?.formula ?? null}
+        tip={tip}
+      />
     </main>
   );
 }

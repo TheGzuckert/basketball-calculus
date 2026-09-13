@@ -1,27 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { ResetButton, ShootButton } from "@/components/button";
 
 type GameActionsProps = {
   flying: boolean;
+  canShoot?: boolean;
   onShoot: () => void;
   onReset: () => void;
 };
 
-export function GameActions({ flying, onShoot, onReset }: GameActionsProps) {
+export function GameActions({ flying, canShoot = true, onShoot, onReset,}: GameActionsProps) {
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button type="button" onClick={onShoot} disabled={flying}>
-        Arremessar
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onReset}
-        disabled={flying}
-      >
-        Reposicionar bola
-      </Button>
+    <div className="contents">
+      <ShootButton disabled={flying || !canShoot} onClick={onShoot} />
+      <ResetButton disabled={flying} onClick={onReset} />
     </div>
   );
 }
